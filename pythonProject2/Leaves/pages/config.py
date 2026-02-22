@@ -1,79 +1,40 @@
+# config.py
+
 import streamlit as st
 from pymongo import MongoClient
-from pymongo.errors import ConnectionFailure, ConfigurationError
-from openai import OpenAI
+from urllib.parse import quote_plus
 
-st.title("⚙ System Configuration")
+# ------------------ MongoDB Config ------------------
 
-# =========================================================
-# MongoDB Configuration
-# =========================================================
+MONGO_USERNAME = "puneethgs113_db_user"
+MONGO_PASSWORD = "puneeth@113"  # your real password here
+MONGO_CLUSTER = "mitraai.0qzeosr.mongodb.net"
+MONGO_DB_NAME = "chatbot_db"
 
-st.subheader("🗄 MongoDB Configuration")
-
-mongo_uri = st.text_input("MongoDB URI", type="password")
-
-if st.button("Connect MongoDB"):
-
-    if not mongo_uri:
-        st.warning("Please enter MongoDB URI")
-        st.stop()
-
+def get_mongo_client():
     try:
-        client = MongoClient(
-            mongo_uri.strip(),
-            serverSelectionTimeoutMS=5000
-        )
+        encoded_password = quote_plus(MONGO_PASSWORD)
 
-        # Force connection test
-        client.admin.command("ping")
+        uri = f"mongodb+srv://{MONGO_USERNAME}:{encoded_password}@{MONGO_CLUSTER}/?retryWrites=true&w=majority"
 
-        st.session_state.mongo_client = client
-        st.success("✅ MongoDB Connected Successfully")
-
-    except ConfigurationError:
-        st.error("❌ Invalid MongoDB URI format")
-
-    except ConnectionFailure:
-        st.error("❌ Could not connect to MongoDB server")
+        client = MongoClient(uri)
+        client.admin.command("ping")  # test connection
+        return client
 
     except Exception as e:
-        st.error(f"❌ MongoDB Error: {e}")
+        st.error(f"❌ MongoDB Connection Error: {e}")
+        return None
 
-# =========================================================
-# OpenRouter Configuration
-# =========================================================
 
-st.divider()
-st.subheader("🔑 OpenRouter Configuration")
+def get_database():
+    client = get_mongo_client()
+    if client:
+        return client[MONGO_DB_NAME]
+    return None
 
-api_key = st.text_input("OpenRouter API Key", type="password")
 
-if st.button("Connect OpenRouter"):
+# ------------------ OpenRouter Config ------------------
 
-    if not api_key:
-        st.warning("Please enter OpenRouter API key")
-        st.stop()
+OPENROUTER_API_KEY = st.secrets.get("OPENROUTER_API_KEY", "")
 
-    try:
-        client = OpenAI(
-            base_url="https://openrouter.ai/api/v1",  # VERY IMPORTANT
-            api_key=api_key.strip()
-        )
-
-        # Test connection by fetching models
-        models = client.models.list()
-
-        model_list = [model.id for model in models.data]
-
-        if not model_list:
-            st.error("No models returned. Check OpenRouter account.")
-            st.stop()
-
-        st.session_state.openrouter_api_key = api_key.strip()
-        st.session_state.available_models = model_list
-
-        st.success("✅ OpenRouter Connected Successfully")
-
-    except Exception as e:
-        st.error(f"❌ OpenRouter Error: {e}")
+OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
