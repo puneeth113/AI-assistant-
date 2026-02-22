@@ -3,7 +3,7 @@ import requests
 
 # Hardcoded MongoDB URI
 MONGO_URI = "mongodb://localhost:27017/"
-API_KEY = "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"
+API_KEY = "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"
 
 def chat_with_bot(user_input):
     url = 'https://api.openrouter.ai/v1/chat'
