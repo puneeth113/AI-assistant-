@@ -1,8 +1,13 @@
-# Chatbot
+import streamlit as st
 
-This is the updated chatbot code with corrected syntax.
+st.title("Chatbot")
+st.write("This is the chatbot page.")
 
-def chatbot_function():
-    # Example function to demonstrate
-    response = """This string contains 'nested quotes' and is properly formatted."""
+
+def chatbot_function() -> str:
+    """Return a sample chatbot response."""
+    response = "This string contains 'nested quotes' and is properly formatted."
     return response
+
+
+st.code(chatbot_function())
